@@ -1,0 +1,4 @@
+inputs/*
+outputs/*
+pretty/*
+__pycache__/*

@@ -1,4 +1,4 @@
-import os, json
+import os, json, requests
 from pretty import prettyJSON
 from items import itemLookup
 from mobs import mobLookup
@@ -32,15 +32,17 @@ def parseQuest(quest):
 		new_file.write(" ")
 	new_file.write("\n}}\n")
 	
-	if "phasesWithEnemies" in quest.keys() and len(quest["phasesWithEnemies"]) != 0 and not "stages" in quest.keys():
+	if "phasesWithEnemies" in quest.keys() and not "stages" in quest.keys():
 		new_file.write("<center>'''MISSING QUEST DATA'''<br />(Parse the [https://api.atlasacademy.io/nice/JP/quest/" + str(quest["id"]) + " quest's JSON file] for this information!)</center>\n")
+	elif "noBattle" in quest["flags"]:
+		new_file.write("<center>'''NO BATTLE'''</center>\n")
 	elif "stages" in quest.keys():
 		new_file.write("{{Questbody\n")
 		for wave in quest["stages"]:
 			currWave = str(wave["wave"])
 			new_file.write("|battle" + currWave + " = Battle " + currWave + "/" + str(len(quest["stages"])) + "\n")
 			for enemy in wave["enemies"]:
-				new_file.write("|en" + currWave + str(enemy["deckId"]) + " = [[" +mobLookup(enemy["svt"]["name"], enemy["svt"]["collectionNo"]) + "|" + enemy["name"] + "]];")
+				new_file.write("|en" + currWave + str(enemy["deckId"]) + " = [[" + mobLookup(enemy["svt"]["name"], enemy["svt"]["collectionNo"]) + "|" + enemy["name"] + "]];")
 				new_file.write(" Lvl " + str(enemy["lv"]) + " {{" + enemy["svt"]["className"].capitalize())
 				if(enemy["svt"]["rarity"] == 1 or enemy["svt"]["rarity"] == 2):
 					new_file.write("Bronze")
@@ -69,10 +71,11 @@ if not os.path.exists("outputs"):
 	os.mkdir("outputs")
 
 files = os.listdir("inputs")
-verNum = "0.1.0" # Update this with new releases!!!
+verNum = "0.2.0" # Update this with new releases!!!
 
 
 print("Parsing files...")
+
 
 for item in files:
 	#grab original text
@@ -98,7 +101,15 @@ for item in files:
 		if "spots" in dict.keys():
 			for spot in dict["spots"]:
 				for quest in spot["quests"]:
-					parseQuest(quest)
+					questJSON = requests.get("https://api.atlasacademy.io/nice/JP/quest/" + str(quest["id"]))
+					if(questJSON.status_code == 200):
+						print(">> API request for quest " + str(quest["id"]) + " successful")
+						phases = questJSON.json()["phases"][0]
+						for x in range(1, phases+1):
+							parseQuest(requests.get("https://api.atlasacademy.io/nice/JP/quest/" + str(quest["id"]) + "/" + str(x)).json())
+							print(">>> Parsed quest " + str(quest["id"]) + " phase " + str(x))
+					else:
+						parseQuest(quest)
 					new_file.write("\n")
 					
 		else:

@@ -36,11 +36,11 @@ for item in files:
 		new_file = open(newname, "a", encoding="utf-8")
 		
 		new_file.write("{{Questheader\n|ap = " + str(dict["consume"]) + "\n")
-		new_file.write("|bond = " + str(dict["bond"]) + "\n")
-		new_file.write("|qp = {{subst:formatnum:" + str(dict["qp"]) + "}}\n")
-		new_file.write("|exp = {{subst:formatnum:" + str(dict["exp"]) + "}}\n")
+		new_file.write("|bond = " + '{:,}'.format(dict["bond"]) + "\n")
+		new_file.write("|qp = " + '{:,}'.format(dict["qp"]) + "\n")
+		new_file.write("|exp = " + '{:,}'.format(dict["exp"]) + "\n")
 		new_file.write("|image = " + "\n")
-		new_file.write("|jpnodename = " + "\n")
+		new_file.write("|jpnodename = " + dict["name"] + "\n")
 		new_file.write("|ennodename = " + "\n")
 		new_file.write("|jpname = " + "\n")
 		new_file.write("|enname = " + dict["name"] + "\n")
@@ -58,7 +58,7 @@ for item in files:
 					new_file.write("Bronze")
 				elif(enemy["svt"]["rarity"] == 3):
 					new_file.write("Silver")
-				new_file.write("}} {{subst:formatnum:" + str(enemy["hp"]) + "}} HP\n")
+				new_file.write("}} " + '{:,}'.format(enemy["hp"]) + " HP\n")
 		
 		new_file.write("|dropicons =")
 		for group in dict["drops"]:
